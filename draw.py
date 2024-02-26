@@ -13,17 +13,37 @@ HEIGHT = 875
 GRAVITY = 0.4
 SPEED = 3
 
+darkmode = True
+
 window = pg.display.set_mode((WIDTH, HEIGHT))
 pg.display.set_caption("ML")
 
 clock = pg.time.Clock()
 
-player = bird.Bird()
+player = bird.Bird(HEIGHT, darkmode)
 
 pg.time.set_timer(pg.USEREVENT + 1, 3000)
 pipes = []
 
 points = 0
+running = True
+
+while running:
+    window.fill(pg.Color("white"))
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            quit()
+        elif event.type == pg.KEYDOWN:
+            if event.key == pg.K_SPACE:
+                running = False
+    
+    if darkmode: window.fill(pg.Color("black"))
+    else: window.fill(pg.Color("white"))
+    
+    player.draw(window)
+    pg.display.flip()
+    clock.tick(60)
+
 running = True
 while running:
     keyque = []
@@ -42,7 +62,8 @@ while running:
             pipes.append(pipe.Pipe(WIDTH, HEIGHT))
             
 
-    window.fill(pg.Color("white"))
+    if darkmode: window.fill(pg.Color("black"))
+    else: window.fill(pg.Color("white"))
     
     for pipeelm in pipes:
         if pipeelm.update(SPEED, player):
@@ -54,7 +75,6 @@ while running:
         running = False
     player.key_events(keyque)
     player.draw(window)
-    
     
     pg.display.flip()
     clock.tick(60)

@@ -1,17 +1,26 @@
 import pygame as pg
+import PIL.Image 
 
 class Bird(pg.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, HEIGHT : int, darkmode : bool):
         super(Bird, self).__init__()
         
         self.jump_height = 8
         self.velocity : float = 0
 
-        self.surf = pg.image.load("assets/bird.png").convert()
+        
+        image = PIL.Image.open('assets/bird.png')
+        if darkmode:
+            inverted_image = PIL.ImageChops.invert(image)
+            self.surf = pg.image.fromstring(inverted_image.tobytes(), inverted_image.size, inverted_image.mode).convert()
+            self.surf.set_colorkey((255, 255, 255), pg.RLEACCEL)
+        else:
+            self.surf = pg.image.fromstring(image.tobytes(), image.size, image.mode).convert()
+            self.surf.set_colorkey((0, 0, 0), pg.RLEACCEL)
+        
         self.surf = pg.transform.scale(self.surf, (60, 60))
-        self.surf.set_colorkey((0, 0, 0), pg.RLEACCEL)
         self.rect = self.surf.get_rect()
-        self.rect.move_ip((200, 0))
+        self.rect.move_ip((200, HEIGHT / 2.2))
         
         
         self.hitbox = self.rect.copy()
