@@ -3,13 +3,15 @@ import pygame as pg
 class Bird(pg.sprite.Sprite):
     def __init__(self):
         super(Bird, self).__init__()
+        
+        self.jump_height = 8
 
         self.surf = pg.image.load("assets/bird.png").convert()
         self.surf = pg.transform.scale(self.surf, (60, 60))
         self.surf.set_colorkey((0, 0, 0), pg.RLEACCEL)
         self.rect = self.surf.get_rect()
         
-        self.rect.move_ip((250, 0))
+        self.rect.move_ip((200, 0))
         
         self.velocity : float = 0
 
@@ -31,6 +33,8 @@ class Bird(pg.sprite.Sprite):
         for pipeelm in pipes:
             if pipeelm.rect_top.colliderect(self.rect) or pipeelm.rect_bottom.colliderect(self.rect):
                 return True
+            
+        return False
 
     def key_events(self, keyque : list):
         for key in keyque:
@@ -42,7 +46,7 @@ class Bird(pg.sprite.Sprite):
 
     def jump(self):
         if self.velocity > 0:
-            self.velocity = -5
+            self.velocity = -self.jump_height
         
         else:
-            self.velocity = max(-10, self.velocity - 5)
+            self.velocity = max(-15, self.velocity - self.jump_height)

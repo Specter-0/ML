@@ -4,10 +4,10 @@ from objects import bird, pipe
 pg.init()
 
 # ALL CAPS WIDTH AND HEIGHT ARE ALWAYS WINDOW DIMENSIONS
-WIDTH = 800
-HEIGHT = 600
+WIDTH = 700
+HEIGHT = 875
 
-GRAVITY = 0.2
+GRAVITY = 0.4
 SPEED = 3
 
 window = pg.display.set_mode((WIDTH, HEIGHT))
@@ -44,6 +44,7 @@ while running:
     for pipeelm in pipes:
         if pipeelm.update(SPEED, player):
             points += 1
+            SPEED += 0.5
             print(points)
         pipeelm.draw(window)
 
