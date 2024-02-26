@@ -1,7 +1,10 @@
 import pygame as pg 
 from objects import bird, pipe
+import subprocess as sp
 
 pg.init()
+
+sp.run("clear", shell=True)
 
 # ALL CAPS WIDTH AND HEIGHT ARE ALWAYS WINDOW DIMENSIONS
 WIDTH = 700
@@ -17,7 +20,7 @@ clock = pg.time.Clock()
 
 player = bird.Bird()
 
-pg.time.set_timer(pg.USEREVENT + 1, 4000)
+pg.time.set_timer(pg.USEREVENT + 1, 3000)
 pipes = []
 
 points = 0
@@ -44,7 +47,6 @@ while running:
     for pipeelm in pipes:
         if pipeelm.update(SPEED, player):
             points += 1
-            SPEED += 0.5
             print(points)
         pipeelm.draw(window)
 
