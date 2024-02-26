@@ -21,8 +21,8 @@ class Bird(pg.sprite.Sprite):
         
         self.rect.move_ip((0, self.velocity))
 
-        if self.rect.y < 0:
-            self.rect.y = 0
+        if self.rect.y < -self.rect.height / 1.7:
+            self.rect.y = -self.rect.height / 1.7
             self.velocity = 0
         
         elif self.rect.y > HEIGHT - (self.rect.height - self.rect.height / 1.7):
@@ -45,5 +45,4 @@ class Bird(pg.sprite.Sprite):
             self.velocity = -5
         
         else:
-            clamp = max(-10, self.velocity - 5)
-            self.velocity = clamp
+            self.velocity = max(-10, self.velocity - 5)
