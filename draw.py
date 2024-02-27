@@ -13,6 +13,10 @@ HEIGHT = 875
 GRAVITY = 0.4
 SPEED = 3
 
+PIPE_DISTANCE = 3000
+
+
+
 darkmode = True
 
 window = pg.display.set_mode((WIDTH, HEIGHT))
@@ -22,7 +26,7 @@ clock = pg.time.Clock()
 
 player = bird.Bird(HEIGHT, darkmode)
 
-pg.time.set_timer(pg.USEREVENT + 1, 3000)
+pg.time.set_timer(pg.USEREVENT + 1, PIPE_DISTANCE)
 pipes = []
 
 points = 0

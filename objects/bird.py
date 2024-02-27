@@ -1,6 +1,10 @@
 import pygame as pg
 import PIL.Image 
 
+JUMP_HEIGHT = 15
+TERMINAL_UP = 15
+TERMINAL_DOWN = 25
+
 class Bird(pg.sprite.Sprite):
     def __init__(self, HEIGHT : int, darkmode : bool):
         super(Bird, self).__init__()
@@ -24,7 +28,7 @@ class Bird(pg.sprite.Sprite):
         
         
         self.hitbox = self.rect.copy()
-        self.hitbox.scale_by_ip(0.6)
+        self.hitbox.scale_by_ip(0.8)
         
         self.hitbox_surf = pg.Surface((self.hitbox.width, self.hitbox.height))
         self.hitbox_surf.fill((255, 0, 0))
@@ -35,6 +39,8 @@ class Bird(pg.sprite.Sprite):
         if returns true then the bird is dead
         """
         self.velocity += GRAVITY
+        if self.velocity > TERMINAL_DOWN:
+            self.velocity = TERMINAL_DOWN
         
         self.rect.move_ip((0, self.velocity))
         
@@ -70,4 +76,4 @@ class Bird(pg.sprite.Sprite):
             self.velocity = -self.jump_height
         
         else:
-            self.velocity = max(-15, self.velocity - self.jump_height)
+            self.velocity = max(-TERMINAL_UP, self.velocity - self.jump_height)
