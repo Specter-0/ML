@@ -1,15 +1,16 @@
 import pygame as pg
 import PIL.Image 
 
-JUMP_HEIGHT = 15
+JUMP_HEIGHT = 10
 TERMINAL_UP = 15
 TERMINAL_DOWN = 25
+HITBOX_SCALE = 0.7
 
 class Bird(pg.sprite.Sprite):
     def __init__(self, HEIGHT : int, darkmode : bool):
         super(Bird, self).__init__()
         
-        self.jump_height = 8
+        self.jump_height = JUMP_HEIGHT
         self.velocity : float = 0
 
         
@@ -28,7 +29,7 @@ class Bird(pg.sprite.Sprite):
         
         
         self.hitbox = self.rect.copy()
-        self.hitbox.scale_by_ip(0.8)
+        self.hitbox.scale_by_ip(HITBOX_SCALE)
         
         self.hitbox_surf = pg.Surface((self.hitbox.width, self.hitbox.height))
         self.hitbox_surf.fill((255, 0, 0))
