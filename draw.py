@@ -11,7 +11,10 @@ WIDTH = 700
 HEIGHT = 875
 
 GRAVITY = 0.4
-SPEED = 4
+PIPE_SPEED = 4
+
+MAX_BG_SPEED = 5
+bg_speed = 1
 
 PIPE_DISTANCE = 3000
 
@@ -32,6 +35,11 @@ def handle_events() -> list:
             pipes.append(pipe.Pipe(WIDTH, HEIGHT))
     
     return keyque
+
+def accelerate(n : float, MAX : float, STEP : float, EXPONENT : float = 1) -> float:
+    if n >= MAX:
+        return MAX
+    return min(MAX, n + STEP * EXPONENT)
 
 window = pg.display.set_mode((WIDTH, HEIGHT))
 pg.display.set_caption("ML")
@@ -57,7 +65,8 @@ while running:
             if event.key == pg.K_SPACE:
                 running = False
     
-    window.fill(pg.Color("black"))
+    bg.draw(window)
+    bg.update(bg_speed)
     
     player.draw(window)
     player.sprite_update()
@@ -71,13 +80,12 @@ while running:
         running = False
         break
 
-    window.fill(pg.Color("black"))
-    
     bg.draw(window)
-    bg.update(6)
+    bg_speed = accelerate(bg_speed, 2, 0.02, 1.5)
+    bg.update(bg_speed)
     
     for pipeelm in pipes:
-        if pipeelm.update(SPEED, player):
+        if pipeelm.update(PIPE_SPEED, player):
             points += 1
             print(points)
         pipeelm.draw(window)
