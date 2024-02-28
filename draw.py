@@ -1,5 +1,5 @@
 import pygame as pg 
-from objects import bird, pipe
+from objects import bird, pipe, background
 import subprocess as sp
 
 pg.init()
@@ -11,26 +11,42 @@ WIDTH = 700
 HEIGHT = 875
 
 GRAVITY = 0.4
-SPEED = 3
+SPEED = 4
 
 PIPE_DISTANCE = 3000
 
-
-
-darkmode = True
+def handle_events() -> list:
+    keyque = []
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            return None
+        
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_ESCAPE:
+                return None
+            
+            else:
+                keyque.append(event.key)
+            
+        if event.type == pg.USEREVENT + 1:
+            pipes.append(pipe.Pipe(WIDTH, HEIGHT))
+    
+    return keyque
 
 window = pg.display.set_mode((WIDTH, HEIGHT))
 pg.display.set_caption("ML")
 
 clock = pg.time.Clock()
 
-player = bird.Bird(HEIGHT, darkmode)
+player = bird.Bird(HEIGHT)
+bg = background.Background(WIDTH, HEIGHT)
 
 pg.time.set_timer(pg.USEREVENT + 1, PIPE_DISTANCE)
 pipes = []
 
 points = 0
 running = True
+blit_hitboxes = False
 
 while running:
     window.fill(pg.Color("white"))
@@ -41,8 +57,7 @@ while running:
             if event.key == pg.K_SPACE:
                 running = False
     
-    if darkmode: window.fill(pg.Color("black"))
-    else: window.fill(pg.Color("white"))
+    window.fill(pg.Color("black"))
     
     player.draw(window)
     player.sprite_update()
@@ -51,24 +66,15 @@ while running:
 
 running = True
 while running:
-    keyque = []
-    for event in pg.event.get():
-        if event.type == pg.QUIT:
-            running = False
-        
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_ESCAPE:
-                running = False
-            
-            else:
-                keyque.append(event.key)
-            
-        if event.type == pg.USEREVENT + 1:
-            pipes.append(pipe.Pipe(WIDTH, HEIGHT))
-            
+    keyque = handle_events()
+    if keyque == None:
+        running = False
+        break
 
-    if darkmode: window.fill(pg.Color("black"))
-    else: window.fill(pg.Color("white"))
+    window.fill(pg.Color("black"))
+    
+    bg.draw(window)
+    bg.update(6)
     
     for pipeelm in pipes:
         if pipeelm.update(SPEED, player):
@@ -78,9 +84,15 @@ while running:
 
     if player.update(GRAVITY, HEIGHT, pipes):
         running = False
+    
     player.key_events(keyque)
     player.draw(window)
-    #player.draw_hitbox(window)
+    
+    if pg.K_h in keyque:
+        blit_hitboxes = not blit_hitboxes
+
+    if blit_hitboxes:
+        player.draw_hitbox(window)
     
     pg.display.flip()
     clock.tick(60)

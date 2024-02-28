@@ -4,11 +4,11 @@ import os
 JUMP_HEIGHT : int = 10
 TERMINAL_UP : int = 15
 TERMINAL_DOWN : int = 25
-HITBOX_SCALE : tuple = (0.8, 0.5)
+HITBOX_SCALE : tuple = (0.8, 0.4)
 SPRITE_COUNT : int = len(os.listdir("assets/jet"))
 
 class Bird(pg.sprite.Sprite):
-    def __init__(self, HEIGHT : int, darkmode : bool):
+    def __init__(self, HEIGHT : int):
         super(Bird, self).__init__()
         
         self.jump_height = JUMP_HEIGHT
@@ -18,10 +18,8 @@ class Bird(pg.sprite.Sprite):
         self.current_sprite_index = 1 # 1 indexing
         
         self.new_surf()
-        
         self.rect = self.surf.get_rect()
         self.rect.move_ip((200, HEIGHT / 2.2))
-        
         
         self.hitbox = self.rect.copy()
         self.hitbox.scale_by_ip(HITBOX_SCALE[0], HITBOX_SCALE[1])
@@ -41,6 +39,12 @@ class Bird(pg.sprite.Sprite):
             self.current_sprite_index = 1
         else:
             self.new_surf()
+            
+            self.tilt()
+    
+    def tilt(self):
+        self.surf = pg.transform.rotate(self.surf, -self.velocity * 2 if -self.velocity > 0 else -self.velocity)
+        self.hitbox 
 
     def update(self, GRAVITY : float, HEIGHT : int, pipes : list) -> bool:
         """
