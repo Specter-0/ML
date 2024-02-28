@@ -1,10 +1,11 @@
 import pygame as pg
-import PIL.Image 
+import os
 
-JUMP_HEIGHT = 10
-TERMINAL_UP = 15
-TERMINAL_DOWN = 25
-HITBOX_SCALE = 0.7
+JUMP_HEIGHT : int = 10
+TERMINAL_UP : int = 15
+TERMINAL_DOWN : int = 25
+HITBOX_SCALE : tuple = (0.8, 0.5)
+SPRITE_COUNT : int = len(os.listdir("assets/jet"))
 
 class Bird(pg.sprite.Sprite):
     def __init__(self, HEIGHT : int, darkmode : bool):
@@ -12,33 +13,42 @@ class Bird(pg.sprite.Sprite):
         
         self.jump_height = JUMP_HEIGHT
         self.velocity : float = 0
-
         
-        image = PIL.Image.open('assets/bird.png')
-        if darkmode:
-            inverted_image = PIL.ImageChops.invert(image)
-            self.surf = pg.image.fromstring(inverted_image.tobytes(), inverted_image.size, inverted_image.mode).convert()
-            self.surf.set_colorkey((255, 255, 255), pg.RLEACCEL)
-        else:
-            self.surf = pg.image.fromstring(image.tobytes(), image.size, image.mode).convert()
-            self.surf.set_colorkey((0, 0, 0), pg.RLEACCEL)
+        self.sprite_count = SPRITE_COUNT
+        self.current_sprite_index = 1 # 1 indexing
         
-        self.surf = pg.transform.scale(self.surf, (60, 60))
+        self.new_surf()
+        
         self.rect = self.surf.get_rect()
         self.rect.move_ip((200, HEIGHT / 2.2))
         
         
         self.hitbox = self.rect.copy()
-        self.hitbox.scale_by_ip(HITBOX_SCALE)
+        self.hitbox.scale_by_ip(HITBOX_SCALE[0], HITBOX_SCALE[1])
         
         self.hitbox_surf = pg.Surface((self.hitbox.width, self.hitbox.height))
         self.hitbox_surf.fill((255, 0, 0))
-        
+    
+    def new_surf(self):
+        self.surf = pg.image.load(f"assets/jet/{self.current_sprite_index}.png").convert()
+        self.surf.set_colorkey((255, 255, 255), pg.RLEACCEL)
+        self.surf = pg.transform.flip(self.surf, True, False)
+        self.surf = pg.transform.scale(self.surf, (80, 80))
+    
+    def sprite_update(self):
+        self.current_sprite_index += 1
+        if self.current_sprite_index > self.sprite_count:
+            self.current_sprite_index = 1
+        else:
+            self.new_surf()
 
     def update(self, GRAVITY : float, HEIGHT : int, pipes : list) -> bool:
         """
         if returns true then the bird is dead
         """
+        
+        self.sprite_update()
+        
         self.velocity += GRAVITY
         if self.velocity > TERMINAL_DOWN:
             self.velocity = TERMINAL_DOWN
@@ -60,6 +70,7 @@ class Bird(pg.sprite.Sprite):
                 return True
         
         return False
+    
     
     def key_events(self, keyque : list):
         for key in keyque:

@@ -45,6 +45,7 @@ while running:
     else: window.fill(pg.Color("white"))
     
     player.draw(window)
+    player.sprite_update()
     pg.display.flip()
     clock.tick(60)
 
@@ -79,6 +80,7 @@ while running:
         running = False
     player.key_events(keyque)
     player.draw(window)
+    #player.draw_hitbox(window)
     
     pg.display.flip()
     clock.tick(60)
