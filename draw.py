@@ -1,6 +1,7 @@
 import pygame as pg 
 from objects import bird, pipe, background
 import subprocess as sp
+import random
 
 pg.init()
 
@@ -10,13 +11,13 @@ sp.run("clear", shell=True)
 WIDTH = 700
 HEIGHT = 875
 
-GRAVITY = 0.4
+GRAVITY = 0.45
 PIPE_SPEED = 4
 
 MAX_BG_SPEED = 5
 bg_speed = 1
 
-PIPE_DISTANCE = 3000
+PIPE_DISTANCE = 2000
 
 def handle_events() -> list:
     keyque = []
@@ -46,8 +47,15 @@ pg.display.set_caption("ML")
 
 clock = pg.time.Clock()
 
-player = bird.Bird(HEIGHT)
+player = bird.Bird(HEIGHT, 200)
+flock = [player]
+
+for i in range(1, 100):
+    flock.append(bird.Bird(HEIGHT, 200))
+
+
 bg = background.Background(WIDTH, HEIGHT)
+
 
 pg.time.set_timer(pg.USEREVENT + 1, PIPE_DISTANCE)
 pipes = []
@@ -64,6 +72,9 @@ while running:
         elif event.type == pg.KEYDOWN:
             if event.key == pg.K_SPACE:
                 running = False
+            
+            if event.key == pg.K_ESCAPE:
+                quit()
     
     bg.draw(window)
     bg.update(bg_speed)
@@ -76,7 +87,7 @@ while running:
 running = True
 while running:
     keyque = handle_events()
-    if keyque == None:
+    if keyque == None or len(flock) == 0:
         running = False
         break
 
@@ -90,11 +101,14 @@ while running:
             print(points)
         pipeelm.draw(window)
 
-    if player.update(GRAVITY, HEIGHT, pipes):
-        running = False
-    
-    player.key_events(keyque)
-    player.draw(window)
+    for index, bird in enumerate(flock):
+        if bird.update(GRAVITY, HEIGHT, pipes):
+            del flock[index]
+        bird.key_events(keyque)
+        bird.draw(window)
+        
+        if random.randint(0, 100) < 2:
+            bird.jump()
     
     if pg.K_h in keyque:
         blit_hitboxes = not blit_hitboxes
