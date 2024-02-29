@@ -43,13 +43,11 @@ class Game():
         keyque = []
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                self.running = False
-                return None
+                self.quit()
             
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
-                    self.running = False
-                    return None
+                    self.quit()
                 
                 if event.key == pg.K_h: self.blit_hitboxes = not self.blit_hitboxes
                 
@@ -118,12 +116,25 @@ class Game():
             
             self.update(keyque)
             self.draw()
+    
+    def hold(self):
+        while True:
+            keyque = self.handle_events()
+            
+            if pg.K_SPACE in keyque:
+                return
+            
+            if pg.K_h in keyque: self.blit_hitboxes = not self.blit_hitboxes
+        
+            self.draw()
             
     def reset(self, bird_count : int = 1) -> None:
         self.pipes = []
         self.flock = []
         
         self.running = True
+        
+        pg.time.set_timer(pg.USEREVENT + 1, self.PIPE_DISTANCE)
         
         self.create_flock(bird_count)
     

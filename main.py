@@ -12,5 +12,6 @@ bird_count = int(sys.argv[1])
 game.setup(bird_count)
 
 while True:
+    game.hold()
     game.mainloop()
     game.reset(bird_count)
