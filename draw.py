@@ -107,8 +107,6 @@ class Game():
         while self.running:
             keyque = self.handle_events()
             
-            if pg.K_h in keyque: self.blit_hitboxes = not self.blit_hitboxes
-            
             if len(self.flock) == 0:
                 self.running = False
                 print("All birds are dead")
@@ -125,8 +123,6 @@ class Game():
                 self.reset(len(self.flock))
                 return
             
-            if pg.K_h in keyque: self.blit_hitboxes = not self.blit_hitboxes
-        
             self.draw()
             
     def reset(self, bird_count : int = 1) -> None:
