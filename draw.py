@@ -3,125 +3,142 @@ from objects import bird, pipe, background
 import subprocess as sp
 import random, sys
 
-pg.init()
-
-sp.run("clear", shell=True)
-
-# ALL CAPS WIDTH AND HEIGHT ARE ALWAYS WINDOW DIMENSIONS
-WIDTH = 700
-HEIGHT = 875
-
-GRAVITY = 0.45
-PIPE_SPEED = 4
-
-MAX_BG_SPEED = 5
-bg_speed = 1
-
-PIPE_DISTANCE = 2000
-
-def handle_events() -> list:
-    keyque = []
-    for event in pg.event.get():
-        if event.type == pg.QUIT:
-            return None
+class Game():
+    def __init__(self) -> None:
+        pg.init()
         
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_ESCAPE:
-                return None
+        # ALL CAPS WIDTH AND HEIGHT ARE ALWAYS WINDOW DIMENSIONS
+        self.WIDTH = 700
+        self.HEIGHT = 875
+
+        self.GRAVITY = 0.45
+        
+        self.PIPE_SPEED = 4
+        self.PIPE_DISTANCE = 2000
+
+        self.MAX_BG_SPEED = 5
+        self.bg_speed = 1
+        
+        self.window = pg.display.set_mode((self.WIDTH, self.HEIGHT))
+        self.clock = pg.time.Clock()
+        
+        self.background = background.Background(self.WIDTH, self.HEIGHT)
+        
+        self.pipes : list = []
+        self.flock : list = []
+        
+        self.running = True
+        self.blit_hitboxes = False
+    
+    def setup(self, bird_count : int = 1) -> None:
+        sp.run("clear", shell=True)
+        
+        pg.display.set_caption("ML")
+        
+        pg.time.set_timer(pg.USEREVENT + 1, self.PIPE_DISTANCE)
+        
+        self.create_flock(bird_count)
+        
+    def handle_events(self) -> list:
+        keyque = []
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self.quit()
             
-            else:
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_ESCAPE:
+                    self.quit()
+                
+                if event.key == pg.K_h: self.blit_hitboxes = not self.blit_hitboxes
+                
                 keyque.append(event.key)
-            
-        if event.type == pg.USEREVENT + 1:
-            pipes.append(pipe.Pipe(WIDTH, HEIGHT))
-    
-    return keyque
-
-def accelerate(n : float, MAX : float, STEP : float, EXPONENT : float = 1) -> float:
-    if n >= MAX:
-        return MAX
-    return min(MAX, n + STEP * EXPONENT)
-
-window = pg.display.set_mode((WIDTH, HEIGHT))
-pg.display.set_caption("ML")
-
-clock = pg.time.Clock()
-
-player = bird.Bird(HEIGHT, 200)
-flock = [player]
-
-if len(sys.argv) < 2 or not sys.argv[1].isdigit():
-    print("provide a valid number of birds")
-    quit()
-
-for i in range(1, int(sys.argv[1])):
-    flock.append(bird.Bird(HEIGHT, 200))
-
-
-bg = background.Background(WIDTH, HEIGHT)
-
-
-pg.time.set_timer(pg.USEREVENT + 1, PIPE_DISTANCE)
-pipes = []
-
-points = 0
-running = True
-blit_hitboxes = False
-
-while running:
-    window.fill(pg.Color("white"))
-    for event in pg.event.get():
-        if event.type == pg.QUIT:
-            quit()
-        elif event.type == pg.KEYDOWN:
-            if event.key == pg.K_SPACE:
-                running = False
-            
-            if event.key == pg.K_ESCAPE:
-                quit()
-    
-    bg.draw(window)
-    bg.update(bg_speed)
-    
-    player.draw(window)
-    player.sprite_update()
-    pg.display.flip()
-    clock.tick(60)
-
-running = True
-while running:
-    keyque = handle_events()
-    if keyque == None or len(flock) == 0:
-        running = False
-        break
-
-    bg.draw(window)
-    bg_speed = accelerate(bg_speed, 2, 0.02, 1.5)
-    bg.update(bg_speed)
-    
-    for pipeelm in pipes:
-        if pipeelm.update(PIPE_SPEED, player):
-            points += 1
-            print(points)
-        pipeelm.draw(window)
-
-    for index, bird in enumerate(flock):
-        if bird.update(GRAVITY, HEIGHT, pipes):
-            del flock[index]
-        bird.key_events(keyque)
-        bird.draw(window)
+                
+            if event.type == pg.USEREVENT + 1:
+                self.pipes.append(pipe.Pipe(self.WIDTH, self.HEIGHT))
         
-        if random.randint(0, 100) < 2:
-            #bird.jump()
-            pass
-    
-    if pg.K_h in keyque:
-        blit_hitboxes = not blit_hitboxes
+        return keyque
 
-    if blit_hitboxes:
-        player.draw_hitbox(window)
+    def accelerate(self, n : float, MAX : float, STEP : float, EXPONENT : float = 1) -> float:
+        if n >= MAX:
+            return MAX
+        return min(MAX, n + STEP * EXPONENT)
     
-    pg.display.flip()
-    clock.tick(60)
-
-pg.quit()
+    def create_flock(self, num : int) -> None:
+        assert num > 0, "num should be greater than 0"
+            
+        for i in range(0, num):
+            self.flock.append(bird.Bird(self.HEIGHT, 200, i))
+    
+    def create_pipe(self) -> None:
+        self.pipes.append(pipe.Pipe(self.WIDTH, self.HEIGHT))
+    
+    def draw(self) -> None:
+        self.background.draw(self.window)
+        
+        for bird in self.flock:
+            bird.draw(self.window)
+            if self.blit_hitboxes:
+                bird.draw_hitbox(self.window)
+        
+        
+        for pipe in self.pipes:
+            pipe.draw(self.window)
+        
+        pg.display.flip()
+        self.clock.tick(60)
+    
+    def update(self, keyque : list) -> None:
+        for bird in self.flock:
+            if bird.update(self.GRAVITY, self.HEIGHT, self.pipes):
+                self.flock.remove(bird)
+        
+        if len(self.flock) > 0:
+            self.flock[0].key_events(keyque)
+            
+        for pipe in self.pipes:
+            for bird in self.flock:
+                if pipe.update(self.PIPE_SPEED, bird):
+                    bird.add_point()
+        
+        self.bg_speed = self.accelerate(self.bg_speed, 2, 0.02, 1.5)
+        self.background.update(self.bg_speed)
+    
+    def mainloop(self):
+        while self.running:
+            keyque = self.handle_events()
+            
+            if pg.K_h in keyque: self.blit_hitboxes = not self.blit_hitboxes
+            
+            if len(self.flock) == 0:
+                self.running = False
+                print("All birds are dead")
+                return
+            
+            self.update(keyque)
+            self.draw()
+    
+    def hold(self):
+        while True:
+            keyque = self.handle_events()
+            
+            if pg.K_SPACE in keyque:
+                self.reset(len(self.flock))
+                return
+            
+            if pg.K_h in keyque: self.blit_hitboxes = not self.blit_hitboxes
+        
+            self.draw()
+            
+    def reset(self, bird_count : int = 1) -> None:
+        self.pipes = []
+        self.flock = []
+        
+        self.running = True
+        
+        pg.time.set_timer(pg.USEREVENT + 1, self.PIPE_DISTANCE)
+        
+        self.create_flock(bird_count)
+    
+    def quit(self) -> None:
+        pg.quit()
+        quit()

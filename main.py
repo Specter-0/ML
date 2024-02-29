@@ -1,4 +1,4 @@
-from t import Game
+from draw import Game
 import random, sys
 
 game = Game()
