@@ -1,3 +1,3 @@
 
 all:
-	python3 ./draw.py $(if $(count), $(count), 1)
+	python3 ./main.py $(if $(count), $(count), 1)

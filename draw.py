@@ -112,7 +112,8 @@ while running:
         bird.draw(window)
         
         if random.randint(0, 100) < 2:
-            bird.jump()
+            #bird.jump()
+            pass
     
     if pg.K_h in keyque:
         blit_hitboxes = not blit_hitboxes

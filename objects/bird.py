@@ -8,8 +8,11 @@ HITBOX_SCALE : tuple = (0.8, 0.4)
 SPRITE_COUNT : int = len(os.listdir("assets/jet"))
 
 class Bird(pg.sprite.Sprite):
-    def __init__(self, HEIGHT : int, OFFSET : int):
+    def __init__(self, HEIGHT : int, OFFSET : int, ID : int):
         super(Bird, self).__init__()
+        
+        self.ID = ID
+        self.points = 0
         
         self.jump_height = JUMP_HEIGHT
         self.velocity : float = 0
@@ -32,6 +35,9 @@ class Bird(pg.sprite.Sprite):
         self.surf.set_colorkey((255, 255, 255), pg.RLEACCEL)
         self.surf = pg.transform.flip(self.surf, True, False)
         self.surf = pg.transform.scale(self.surf, (80, 80))
+    
+    def add_point(self):
+        self.points += 1
     
     def sprite_update(self):
         self.current_sprite_index += 1
