@@ -1,7 +1,7 @@
 import pygame as pg 
 from objects import bird, pipe, background
 import subprocess as sp
-import random
+import random, sys
 
 pg.init()
 
@@ -50,7 +50,11 @@ clock = pg.time.Clock()
 player = bird.Bird(HEIGHT, 200)
 flock = [player]
 
-for i in range(1, 100):
+if len(sys.argv) < 2 or not sys.argv[1].isdigit():
+    print("provide a valid number of birds")
+    quit()
+
+for i in range(1, int(sys.argv[1])):
     flock.append(bird.Bird(HEIGHT, 200))
 
 
