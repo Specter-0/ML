@@ -4,3 +4,6 @@ all:
 
 ai:
 	python3 ./ai.py
+
+gradient:
+	python3 ./gradient.py
