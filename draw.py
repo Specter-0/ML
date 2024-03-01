@@ -90,6 +90,7 @@ class Game():
     def update(self, keyque : list) -> None:
         for bird in self.flock:
             if bird.update(self.GRAVITY, self.HEIGHT, self.pipes):
+                print(f"Bird {bird.ID} died, Score: {bird.points}")
                 self.flock.remove(bird)
         
         if len(self.flock) > 0:
@@ -109,7 +110,6 @@ class Game():
             
             if len(self.flock) == 0:
                 self.running = False
-                print("All birds are dead")
                 return
             
             self.update(keyque)
