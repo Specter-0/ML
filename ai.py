@@ -87,19 +87,42 @@ class Poly():
     def values(self, xvalues : list[float]):
         return xvalues, [self(x) for x in xvalues]
     
+class GradientDecent():
+    def __init__(self, learning_rate : float = 0.1, max_iterations : int = 1000, precision : float = 0.001) -> None:
+        self.learning_rate = learning_rate
+        self.precision = precision
+        self.max_iterations = max_iterations
+    
+    def __call__(self, value, poly : Poly) -> float:
+        loss = sum([(observed - predicted) * -2 for observed, predicted in zip(mynet.points.values(), poly.values(mynet.points.keys())[1])])
+        
+        step_size = loss * self.learning_rate
+        
+        value += - step_size
+        self.max_iterations -= 1
+        
+        return value, (abs(step_size) < self.precision or self.max_iterations == 0)
 
 mynet = NeuralNetwork({0 : 0, 0.5 : 1, 1 : 0})
 
-
-lx, ly = mynet.traverse(0, 1, 0.01)
-    
-poly = Poly(lx, ly, 2)
-
-_, lye = poly.values(mynet.points.keys())
-
-print(sum([(observed - predicted)**2 for observed, predicted in zip(mynet.points.values(), lye)]))
-
+gd = GradientDecent(max_iterations=100, precision=0.001)
 
 graph = EzGraph(mynet.points)
-graph.from_list(lx, ly, "predicted")
-graph.plot(["predicted"], render_points=True)
+
+v = 0
+vl = []
+while True:
+    lx, ly = mynet.traverse(0, 1, 0.1)
+    poly = Poly(lx, ly, 2)
+    
+    graph.from_list(lx, ly, str(v))
+    vl.append(str(v))
+    
+    v, should_break = gd(v, poly)
+   
+    mynet.b3 = lambda x : x + v
+    
+    if should_break: break
+
+
+graph.plot(vl, render_points=True)
