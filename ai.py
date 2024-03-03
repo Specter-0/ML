@@ -8,8 +8,8 @@ class NeuralNetwork():
         
         self.w1 = lambda x : x * 3.34
         self.w2 = lambda x : x * -3.53
-        self.w3 = lambda x : x * 0.36 # should be np.random.normal(0, 1) for real testing
-        self.w4 = lambda x : x * 0.63 # should be np.random.normal(0, 1) for real testing
+        self.w3 = lambda x : x * np.random.normal(0, 1) 
+        self.w4 = lambda x : x * np.random.normal(0, 1) 
         
         self.b1 = lambda x : x + -1.43
         self.b2 = lambda x : x + 0.57
@@ -83,7 +83,7 @@ class EzGraph():
         if render_points:
             plt.plot(self.points.keys(), self.points.values(), "bo")
         
-        plt.show()
+        plt.show(block=False)
         plt.pause(0.03)
         plt.close()
 
@@ -116,7 +116,6 @@ class GradientDecent():
         value += - step_size
         self.max_iterations -= 1
         return value, (abs(step_size) < self.precision or self.max_iterations == 0)
-
 
 
 mynet = NeuralNetwork({0 : 0, 0.5 : 1, 1 : 0})
