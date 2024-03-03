@@ -105,13 +105,18 @@ class GradientDecent():
 
 mynet = NeuralNetwork({0 : 0, 0.5 : 1, 1 : 0})
 
+gd = GradientDecent(max_iterations=100, precision=0.001)
+
 graph = EzGraph(mynet.points)
 
-gd = GradientDecent(max_iterations=100, precision=0.001)
 v = 0
+vl = []
 while True:
     lx, ly = mynet.traverse(0, 1, 0.1)
     poly = Poly(lx, ly, 2)
+    
+    graph.from_list(lx, ly, str(v))
+    vl.append(str(v))
     
     v, should_break = gd(v, poly)
    
@@ -119,37 +124,5 @@ while True:
     
     if should_break: break
 
-gd = GradientDecent(max_iterations=100, precision=0.001)
-v = mynet.w3(1)
-while True:
-    lx, ly = mynet.traverse(0, 1, 0.1)
-    poly = Poly(lx, ly, 2)
-    
-    v, should_break = gd(v, poly)
-   
-    mynet.w3 = lambda x : x * v
-    
-    if should_break: break
-    
-gd = GradientDecent(max_iterations=100, precision=0.001)
-v = mynet.w4(1)
-while True:
-    lx, ly = mynet.traverse(0, 1, 0.1)
-    poly = Poly(lx, ly, 2)
-    
-    v, should_break = gd(v, poly)
-   
-    mynet.w4 = lambda x : x * v
-    
-    if should_break: break
 
-lx, ly = mynet.traverse(0, 1, 0.1)
-poly = Poly(lx, ly, 2)
-
-print("b3: ", mynet.b3(0))
-print("w3: ", mynet.w3(1))
-print("w4: ", mynet.w4(1))
-
-
-graph.from_list(lx, ly, "neural network")
-graph.plot(["neural network"], ["b"], True)
+graph.plot(vl, render_points=True)
