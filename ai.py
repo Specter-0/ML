@@ -1,6 +1,10 @@
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 import numpy as np
-import math
+import math, sys
+from typing import Generator
+
+plt.style.use('fivethirtyeight')
 
 class NeuralNetwork():
     def __init__(self, points : dict[float, float]) -> None:
@@ -48,21 +52,20 @@ class NeuralNetwork():
         return [x for x in np.arange(minx, maxx + step, step)], [self.forward(x) for x in np.arange(minx, maxx + step, step)]
         
     def __str__(self) -> str:
-        return f""" 
-    w1: {self.w1(1)} \n
-    w2: {self.w2(1)} \n
-    w3: {self.w3(1)} \n
-    w4: {self.w4(1)} \n
-    b1: {self.b1(1)} \n
-    b2: {self.b2(1)} \n
-    b3: {self.b3(1)} 
-        """
+        return f"""w1: {self.w1(1)} 
+w2: {round(self.w2(1), 3)} 
+w3: {round(self.w3(1), 3)} 
+w4: {round(self.w4(1), 3)} \n
+b1: {round(self.b1(1), 3)} 
+b2: {round(self.b2(1), 3)} 
+b3: {round(self.b3(1), 3)} 
+"""
 
 class EzGraph():
     def __init__(self, points : dict[float, float]) -> None:
         self.chart : dict[str, dict[str, list[float]]] = {}
         self.points = points
-    
+        
     def append(self, x, y, name):
         if name not in self.chart.keys():
             self.chart[name] = {"x" : [], "y" : []}
@@ -83,9 +86,8 @@ class EzGraph():
         if render_points:
             plt.plot(self.points.keys(), self.points.values(), "bo")
         
-        plt.show(block=False)
-        plt.pause(0.03)
-        plt.close()
+    def show(self):
+        plt.show()
 
 class Poly():
     def __init__(self, xvalues, yvalues, degree) -> None:
@@ -124,6 +126,7 @@ gdw3 = GradientDecent(max_iterations=1000, precision=0.0001)
 gdw4 = GradientDecent(max_iterations=1000, precision=0.0001)
 
 def step(vb3, vw3, vw4, optimized):
+    global mynet
     lx, ly = mynet.traverse(0, 1, 0.1)
     poly = Poly(lx, ly, 2)
     
@@ -172,30 +175,47 @@ def step(vb3, vw3, vw4, optimized):
     
     return vb3, vw3, vw4, optimized
    
-   
-vb3 = mynet.b3(0)
-vw3 = mynet.w3(1)
-vw4 = mynet.w4(1)
-optimized = [False, False, False]
 
- 
-while not all(optimized):
-    vb3, vw3, vw4, optimized = step(vb3, vw3, vw4, optimized)
-    print("vb3:", vb3, "\n")
-    print("vw3:", vw3, "\n")
-    print("vw4:", vw4, "\n")
-    print("optimized:", optimized, "\n")
-    
-    graph = EzGraph(mynet.points)
-    lx, ly = mynet.traverse(0, 1.0, 0.01)
-    graph.from_list(lx, ly, "predicted")
-    graph.plot(render_points=True)
-    
-    
-    
+def run() -> Generator[tuple[list[float], list[float]], None, None]:
+    global mynet
+    vb3 = mynet.b3(0)
+    vw3 = mynet.w3(1)
+    vw4 = mynet.w4(1)
+    optimized = [False, False, False]
 
-print(mynet)
-graph = EzGraph(mynet.points)
-lx, ly = mynet.traverse(0, 1.0, 0.01)
-graph.from_list(lx, ly, "predicted")
-graph.plot(render_points=True)
+    while not all(optimized):
+        vb3, vw3, vw4, optimized = step(vb3, vw3, vw4, optimized)
+        
+        yield mynet.traverse(0, 1, 0.01)
+        #print("vb3:", vb3, "\n")
+        #print("vw3:", vw3, "\n")
+        #print("vw4:", vw4, "\n")
+        #print("optimized:", optimized, "\n")
+
+# shit is for drawing --------------------
+
+fig, ax = plt.subplots()
+line = ax.plot([], [], lw=2)[0]
+
+def animate(state):
+    lx, ly = state
+    
+    line.set_data(lx, ly)
+    
+    return line,
+    
+def init():
+    ax.set_xlim(-0.1, 1.1)
+    ax.set_ylim(-0.1, 1.1)
+    return line,
+
+anim = FuncAnimation(fig, animate, frames=run(), interval=sys.argv[1], init_func=init, blit=True, repeat=False, cache_frame_data=False)
+    
+plt.tight_layout()
+plt.plot(mynet.points.keys(), mynet.points.values(), "ro")
+plt.show()
+
+# --------------------
+
+with open("values.txt", "w") as f:
+    f.write(str(mynet))
