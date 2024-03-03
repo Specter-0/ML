@@ -45,7 +45,7 @@ class NeuralNetwork():
         return (in_1, in_2)
     
     def traverse(self, minx, maxx, step):
-        return [x for x in np.arange(minx, maxx, step)], [self.forward(x) for x in np.arange(minx, maxx, step)]
+        return [x for x in np.arange(minx, maxx + step, step)], [self.forward(x) for x in np.arange(minx, maxx + step, step)]
         
     def __str__(self) -> str:
         return f""" 
@@ -84,6 +84,8 @@ class EzGraph():
             plt.plot(self.points.keys(), self.points.values(), "bo")
         
         plt.show()
+        plt.pause(0.03)
+        plt.close()
 
 class Poly():
     def __init__(self, xvalues, yvalues, degree) -> None:
@@ -118,9 +120,9 @@ class GradientDecent():
 
 
 mynet = NeuralNetwork({0 : 0, 0.5 : 1, 1 : 0})
-gdb3 = GradientDecent(max_iterations=100, precision=0.001)
-gdw3 = GradientDecent(max_iterations=100, precision=0.001)
-gdw4 = GradientDecent(max_iterations=100, precision=0.001)
+gdb3 = GradientDecent(max_iterations=1000, precision=0.0001)
+gdw3 = GradientDecent(max_iterations=1000, precision=0.0001)
+gdw4 = GradientDecent(max_iterations=1000, precision=0.0001)
 
 def step(vb3, vw3, vw4, optimized):
     lx, ly = mynet.traverse(0, 1, 0.1)
@@ -176,6 +178,7 @@ vb3 = mynet.b3(0)
 vw3 = mynet.w3(1)
 vw4 = mynet.w4(1)
 optimized = [False, False, False]
+
  
 while not all(optimized):
     vb3, vw3, vw4, optimized = step(vb3, vw3, vw4, optimized)
@@ -184,9 +187,16 @@ while not all(optimized):
     print("vw4:", vw4, "\n")
     print("optimized:", optimized, "\n")
     
+    graph = EzGraph(mynet.points)
+    lx, ly = mynet.traverse(0, 1.0, 0.01)
+    graph.from_list(lx, ly, "predicted")
+    graph.plot(render_points=True)
+    
+    
+    
 
 print(mynet)
 graph = EzGraph(mynet.points)
-lx, ly = mynet.traverse(0, 1, 0.1)
+lx, ly = mynet.traverse(0, 1.0, 0.01)
 graph.from_list(lx, ly, "predicted")
 graph.plot(render_points=True)
