@@ -240,7 +240,7 @@ for index, x in enumerate(lx):
 
 gre = EzGraph(mynet.points)
 gre.add("main")
-gre.animate("main", frames=ff, interval=sys.argv[1], xlim=(-0.1, 1.1), ylim=(-3, 1.1))
+gre.animate("main", frames=ff, interval=10, xlim=(-0.1, 1.1), ylim=(-3, 1.1))
 gre.plot_points()
 plt.legend()
 gre.show()

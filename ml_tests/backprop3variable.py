@@ -209,7 +209,7 @@ def init():
     ax.set_ylim(-0.1, 1.1)
     return line,
 
-anim = FuncAnimation(fig, animate, frames=run(), interval=sys.argv[1], init_func=init, blit=True, repeat=False, cache_frame_data=False)
+anim = FuncAnimation(fig, animate, frames=run(), interval=10, init_func=init, blit=True, repeat=False, cache_frame_data=False)
     
 plt.tight_layout()
 plt.plot(mynet.points.keys(), mynet.points.values(), "ro")
