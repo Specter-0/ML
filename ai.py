@@ -10,13 +10,13 @@ class NeuralNetwork():
     def __init__(self, points : dict[float, float]) -> None:
         self.points = points
         
-        self.w1 = lambda x : x * 3.34
-        self.w2 = lambda x : x * -3.53
+        self.w1 = lambda x : x * np.random.normal(0, 1) 
+        self.w2 = lambda x : x * np.random.normal(0, 1) 
         self.w3 = lambda x : x * np.random.normal(0, 1) 
         self.w4 = lambda x : x * np.random.normal(0, 1) 
         
-        self.b1 = lambda x : x + -1.43
-        self.b2 = lambda x : x + 0.57
+        self.b1 = lambda x : x + 0
+        self.b2 = lambda x : x + 0
         self.b3 = lambda x : x + 0
         
         self.activation_function_1 = lambda x : math.log(1 + math.exp(x)) # soft pluss (>_<)
@@ -157,21 +157,32 @@ class GradientDecent():
 
 
 mynet = NeuralNetwork({0 : 0, 0.5 : 1, 1 : 0})
-gdb3 = GradientDecent(max_iterations=1000, precision=0.0001)
-gdw3 = GradientDecent(max_iterations=1000, precision=0.0001)
-gdw4 = GradientDecent(max_iterations=1000, precision=0.0001)
+gdw1 = GradientDecent(max_iterations=1000, precision=0.0001, learning_rate=0.01)
+gdw2 = GradientDecent(max_iterations=1000, precision=0.0001, learning_rate=0.01)
+gdw3 = GradientDecent(max_iterations=1000, precision=0.0001, learning_rate=0.01)
+gdw4 = GradientDecent(max_iterations=1000, precision=0.0001, learning_rate=0.01)
+gdb1 = GradientDecent(max_iterations=1000, precision=0.0001, learning_rate=0.01)
+gdb2 = GradientDecent(max_iterations=1000, precision=0.0001, learning_rate=0.01)
+gdb3 = GradientDecent(max_iterations=1000, precision=0.0001, learning_rate=0.01)
 
 def step(optimized):
     global mynet
     lx, ly = mynet.traverse(0, 1, 0.1)
     poly = Poly(lx, ly, 2)
     
+    vb1 = None
+    vb2 = None
+    vb3 = None
+    
+    vw1 = None
+    vw2 = None
+    vw3 = None
+    vw4 = None
+    
     if not optimized[0]:
         loss = sum([(observed - predicted) * -2 for observed, predicted in zip(mynet.points.values(), poly.values(mynet.points.keys())[1])])
         
         vb3, should_break = gdb3(mynet.b3(0), loss)
-
-        mynet.b3 = lambda x : x + vb3
         
         if should_break: optimized[0] = True
         
@@ -182,13 +193,11 @@ def step(optimized):
             
             in_1 = mynet.w1(x)
             in_1 = mynet.b1(in_1)
-            in_1 = mynet.activation_function_1(in_1)
+            y1 = mynet.activation_function_1(in_1)
             
-            loss += -2 * (observed - predicted) * in_1
+            loss += -2 * (observed - predicted) * y1
         
         vw3, should_break = gdw3(mynet.w3(1), loss)
-
-        mynet.w3 = lambda x : x * vw3
         
         if should_break: optimized[1] = True
 
@@ -199,21 +208,88 @@ def step(optimized):
             
             in_2 = mynet.w2(x)
             in_2 = mynet.b2(in_2)
-            in_2 = mynet.activation_function_2(in_2)
+            y2 = mynet.activation_function_2(in_2)
             
-            loss += -2 * (observed - predicted) * in_2
+            loss += -2 * (observed - predicted) * y2
             
         vw4, should_break = gdw4(mynet.w4(1), loss)
-    
-        mynet.w4 = lambda x : x * vw4
         
         if should_break: optimized[2] = True
     
+    if not optimized[3]:
+        loss = 0
+        for x, observed in mynet.points.items():
+            predicted = poly(x)
+            
+            in_1 = mynet.w1(x)
+            x1 = mynet.b1(in_1)
+            
+            loss += -2 * (observed - predicted) * mynet.w3(1) * (math.exp(x1) / (1 + math.exp(x1))) * x
+            
+        vw1, should_break = gdw1(mynet.w1(1), loss)
+        
+        if should_break: optimized[3] = True
+        
+    if not optimized[4]:
+        loss = 0
+        for x, observed in mynet.points.items():
+            predicted = poly(x)
+            
+            in_1 = mynet.w1(x)
+            x1 = mynet.b1(in_1)
+            
+            loss += -2 * (observed - predicted) * mynet.w3(1) * (math.exp(x1) / (1 + math.exp(x1))) * 1
+            
+        vb1, should_break = gdb1(mynet.b1(0), loss)
+        
+        if should_break: optimized[4] = True
+    
+    if not optimized[5]:
+        loss = 0
+        for x, observed in mynet.points.items():
+            predicted = poly(x)
+            
+            in_2 = mynet.w2(x)
+            x2 = mynet.b2(in_2)
+            
+            loss += -2 * (observed - predicted) * mynet.w4(1) * (math.exp(x2) / (1 + math.exp(x2))) * x
+            
+        vw2, should_break = gdw2(mynet.w2(1), loss)
+    
+        if should_break: optimized[5] = True
+    
+    if not optimized[6]:
+        loss = 0
+        for x, observed in mynet.points.items():
+            predicted = poly(x)
+            
+            in_2 = mynet.w2(x)
+            x2 = mynet.b2(in_2)
+            
+            loss += -2 * (observed - predicted) * mynet.w4(1) * (math.exp(x2) / (1 + math.exp(x2))) * 1
+            
+        vb2, should_break = gdb2(mynet.b2(1), loss)
+    
+        if should_break: optimized[6] = True
+    
+    
+    if not optimized[3]: mynet.w1 = lambda x : x * vw1
+    if not optimized[4]: mynet.b1 = lambda x : x * vb1
+    
+    if not optimized[5]: mynet.w2 = lambda x : x * vw2
+    if not optimized[6]: mynet.b2 = lambda x : x * vb2
+    
+    if not optimized[1]: mynet.w3 = lambda x : x * vw3
+    if not optimized[2]: mynet.w4 = lambda x : x * vw4
+    if not optimized[0]: mynet.b3 = lambda x : x + vb3
+    
     return optimized
+
+    
 
 def run() -> Generator[tuple[list[float], list[float]], None, None]:
     global mynet
-    optimized = [False, False, False]
+    optimized = [False, False, False, False, False, False, False]
 
     while not all(optimized):
         optimized = step(optimized)
