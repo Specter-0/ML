@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+from typing import Generator
 import numpy as np
 import math, sys
-from typing import Generator
 
 plt.style.use('fivethirtyeight')
 
@@ -33,6 +33,7 @@ class NeuralNetwork():
         in_2 = self.activation_function_2(in_2)
         in_2 = self.w4(in_2)
         
+        print(in_1, in_2)
         return self.b3(in_1 + in_2)
 
     def halv_forward(self, x : float) -> tuple[float, float]:
@@ -50,6 +51,9 @@ class NeuralNetwork():
     
     def traverse(self, minx, maxx, step):
         return [x for x in np.arange(minx, maxx + step, step)], [self.forward(x) for x in np.arange(minx, maxx + step, step)]
+    
+    def traverse_half(self, minx, maxx, step):
+        return [x for x in np.arange(minx, maxx + step, step)], [self.halv_forward(x) for x in np.arange(minx, maxx + step, step)]
         
     def __str__(self) -> str:
         return f"""w1: {self.w1(1)} 
@@ -61,32 +65,68 @@ b2: {round(self.b2(1), 3)}
 b3: {round(self.b3(1), 3)} 
 """
 
+    def config(self) -> str:
+        return {
+            "w1" : round(self.w1(1), 3),
+            "w2" : round(self.w2(1), 3),
+            "w3" : round(self.w3(1), 3),
+            "w4" : round(self.w4(1), 3),
+            "b1" : round(self.b1(0), 3),
+            "b2" : round(self.b2(0), 3),
+            "b3" : round(self.b3(0), 3),
+        }
+
 class EzGraph():
     def __init__(self, points : dict[float, float]) -> None:
-        self.chart : dict[str, dict[str, list[float]]] = {}
+        self.chart : dict = {}
         self.points = points
         
-    def append(self, x, y, name):
-        if name not in self.chart.keys():
-            self.chart[name] = {"x" : [], "y" : []}
+    def add(self, name):
+        fig, ax = plt.subplots()
+        line1 = ax.plot([], [], lw=2)[0]
+        line1.set_label("sum + bias3")
         
-        self.chart[name]["x"].append(x)
-        self.chart[name]["y"].append(y)
+        line2 = ax.plot([], [], lw=2)[0]
+        line3 = ax.plot([], [], lw=2)[0]
+        
+        self.chart[name] = {"fig" : fig, "ax" : ax, "line1" : line1, "line2" : line2, "line3" : line3, "anim": None}
+        
     
-    def from_list(self, x : list[float], y : list[float], name : str):
-        self.chart[name] = {"x" : x, "y" : y}
+    def animate(self, name : str, frames, interval : int, xlim : tuple[float, float] = None, ylim : tuple[float, float] = None):
+        def animate(state):
+            lx, lin_1, lin_2, ly, config  = state
+            
+            self.chart[name]["line1"].set_data(lx, ly)
+            self.chart[name]["line2"].set_data(lx, lin_1)
+            self.chart[name]["line3"].set_data(lx, lin_2)
+            
+            for key in config.keys():
+                plt.text(0.01, 0.01, f'{key}: {mynet.config()[key]}', transform=plt.gca().transAxes)
+            
+            return self.chart[name]["line1"], self.chart[name]["line2"], self.chart[name]["line3"]
+        
+        def init():
+            if xlim: self.chart[name]["ax"].set_xlim(*xlim)
+            if ylim: self.chart[name]["ax"].set_ylim(*ylim)
+            
+            return self.chart[name]["line1"], self.chart[name]["line2"], self.chart[name]["line3"]
+        
+        self.chart[name]["anim"] = FuncAnimation(
+            self.chart[name]["fig"], 
+            animate, 
+            frames=frames, 
+            interval=interval, 
+            init_func=init, 
+            blit=True, 
+            repeat=False, 
+            cache_frame_data=False
+        )
     
-    def plot(self, names : list[str] = None, types : list[str] = ["b"], render_points : bool = False):
-        if names == None:
-            names = self.chart.keys()
-        
-        for index, name in enumerate(names):
-            plt.plot(self.chart[name]["x"], self.chart[name]["y"], types[index] if len(types) > index else types[0])
-        
-        if render_points:
-            plt.plot(self.points.keys(), self.points.values(), "bo")
+    def plot_points(self):
+        plt.plot(self.points.keys(), self.points.values(), "bo")
         
     def show(self):
+        plt.tight_layout()
         plt.show()
 
 class Poly():
@@ -174,7 +214,6 @@ def step(vb3, vw3, vw4, optimized):
         if should_break: optimized[2] = True
     
     return vb3, vw3, vw4, optimized
-   
 
 def run() -> Generator[tuple[list[float], list[float]], None, None]:
     global mynet
@@ -186,7 +225,12 @@ def run() -> Generator[tuple[list[float], list[float]], None, None]:
     while not all(optimized):
         vb3, vw3, vw4, optimized = step(vb3, vw3, vw4, optimized)
         
-        yield mynet.traverse(0, 1, 0.01)
+        x, lxy = mynet.traverse_half(0, 1, 0.01)
+        lx, ly = zip(*lxy)
+        
+        yield (mynet.traverse(0, 1, 0.01), (x, lx, ly), mynet.config())
+        
+
         #print("vb3:", vb3, "\n")
         #print("vw3:", vw3, "\n")
         #print("vw4:", vw4, "\n")
@@ -194,26 +238,24 @@ def run() -> Generator[tuple[list[float], list[float]], None, None]:
 
 # shit is for drawing --------------------
 
-fig, ax = plt.subplots()
-line = ax.plot([], [], lw=2)[0]
+f, lin1_2, config = zip(*list(run()))
 
-def animate(state):
-    lx, ly = state
-    
-    line.set_data(lx, ly)
-    
-    return line,
-    
-def init():
-    ax.set_xlim(-0.1, 1.1)
-    ax.set_ylim(-0.1, 1.1)
-    return line,
+lx, in_1, in_2 = zip(*lin1_2)
 
-anim = FuncAnimation(fig, animate, frames=run(), interval=sys.argv[1], init_func=init, blit=True, repeat=False, cache_frame_data=False)
+ff = []
+for index, x in enumerate(lx):
+    ff.append((x, in_1[index], in_2[index], f[index][1], config[index]))
+
+
+
+gre = EzGraph(mynet.points)
+gre.add("main")
+gre.animate("main", frames=ff, interval=sys.argv[1], xlim=(-0.1, 1.1), ylim=(-3, 1.1))
+gre.plot_points()
+plt.legend()
+gre.show()
     
-plt.tight_layout()
-plt.plot(mynet.points.keys(), mynet.points.values(), "ro")
-plt.show()
+
 
 # --------------------
 
