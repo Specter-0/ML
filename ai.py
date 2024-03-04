@@ -33,7 +33,6 @@ class NeuralNetwork():
         in_2 = self.activation_function_2(in_2)
         in_2 = self.w4(in_2)
         
-        print(in_1, in_2)
         return self.b3(in_1 + in_2)
 
     def halv_forward(self, x : float) -> tuple[float, float]:
@@ -94,14 +93,11 @@ class EzGraph():
     
     def animate(self, name : str, frames, interval : int, xlim : tuple[float, float] = None, ylim : tuple[float, float] = None):
         def animate(state):
-            lx, lin_1, lin_2, ly, config  = state
+            lx, lin_1, lin_2, ly  = state
             
             self.chart[name]["line1"].set_data(lx, ly)
             self.chart[name]["line2"].set_data(lx, lin_1)
             self.chart[name]["line3"].set_data(lx, lin_2)
-            
-            for key in config.keys():
-                plt.text(0.01, 0.01, f'{key}: {mynet.config()[key]}', transform=plt.gca().transAxes)
             
             return self.chart[name]["line1"], self.chart[name]["line2"], self.chart[name]["line3"]
         
@@ -228,23 +224,17 @@ def run() -> Generator[tuple[list[float], list[float]], None, None]:
         x, lxy = mynet.traverse_half(0, 1, 0.01)
         lx, ly = zip(*lxy)
         
-        yield (mynet.traverse(0, 1, 0.01), (x, lx, ly), mynet.config())
-        
-
-        #print("vb3:", vb3, "\n")
-        #print("vw3:", vw3, "\n")
-        #print("vw4:", vw4, "\n")
-        #print("optimized:", optimized, "\n")
+        yield (mynet.traverse(0, 1, 0.01), (x, lx, ly))
 
 # shit is for drawing --------------------
 
-f, lin1_2, config = zip(*list(run()))
+f, lin1_2 = zip(*list(run()))
 
 lx, in_1, in_2 = zip(*lin1_2)
 
 ff = []
 for index, x in enumerate(lx):
-    ff.append((x, in_1[index], in_2[index], f[index][1], config[index]))
+    ff.append((x, in_1[index], in_2[index], f[index][1]))
 
 
 
