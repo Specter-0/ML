@@ -161,7 +161,7 @@ gdb3 = GradientDecent(max_iterations=1000, precision=0.0001)
 gdw3 = GradientDecent(max_iterations=1000, precision=0.0001)
 gdw4 = GradientDecent(max_iterations=1000, precision=0.0001)
 
-def step(vb3, vw3, vw4, optimized):
+def step(optimized):
     global mynet
     lx, ly = mynet.traverse(0, 1, 0.1)
     poly = Poly(lx, ly, 2)
@@ -169,7 +169,7 @@ def step(vb3, vw3, vw4, optimized):
     if not optimized[0]:
         loss = sum([(observed - predicted) * -2 for observed, predicted in zip(mynet.points.values(), poly.values(mynet.points.keys())[1])])
         
-        vb3, should_break = gdb3(vb3, loss)
+        vb3, should_break = gdb3(mynet.b3(0), loss)
 
         mynet.b3 = lambda x : x + vb3
         
@@ -186,7 +186,7 @@ def step(vb3, vw3, vw4, optimized):
             
             loss += -2 * (observed - predicted) * in_1
         
-        vw3, should_break = gdw3(vw3, loss)
+        vw3, should_break = gdw3(mynet.w3(1), loss)
 
         mynet.w3 = lambda x : x * vw3
         
@@ -203,23 +203,20 @@ def step(vb3, vw3, vw4, optimized):
             
             loss += -2 * (observed - predicted) * in_2
             
-        vw4, should_break = gdw4(vw4, loss)
+        vw4, should_break = gdw4(mynet.w4(1), loss)
     
         mynet.w4 = lambda x : x * vw4
         
         if should_break: optimized[2] = True
     
-    return vb3, vw3, vw4, optimized
+    return optimized
 
 def run() -> Generator[tuple[list[float], list[float]], None, None]:
     global mynet
-    vb3 = mynet.b3(0)
-    vw3 = mynet.w3(1)
-    vw4 = mynet.w4(1)
     optimized = [False, False, False]
 
     while not all(optimized):
-        vb3, vw3, vw4, optimized = step(vb3, vw3, vw4, optimized)
+        optimized = step(optimized)
         
         x, lxy = mynet.traverse_half(0, 1, 0.01)
         lx, ly = zip(*lxy)
@@ -237,14 +234,12 @@ for index, x in enumerate(lx):
     ff.append((x, in_1[index], in_2[index], f[index][1]))
 
 
-
 gre = EzGraph(mynet.points)
 gre.add("main")
 gre.animate("main", frames=ff, interval=sys.argv[1], xlim=(-0.1, 1.1), ylim=(-3, 1.1))
 gre.plot_points()
 plt.legend()
 gre.show()
-    
 
 
 # --------------------
