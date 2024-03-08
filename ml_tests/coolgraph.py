@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.widgets import Button, Slider
-import math, sys
+import math, sys, random
 import numpy as np
 
 plt.style.use('fivethirtyeight')
@@ -96,6 +96,27 @@ alpha_slider = Slider(
     orientation="vertical"
 )
 
+axX = fig.add_axes([0.25, 0.8, 0.65, 0.03])
+X_slider = Slider(
+    ax=axX,
+    label="X",
+    valmin=0,
+    valmax=1,
+    valinit=0.85,
+    orientation="horizontal"
+)
+
+axY = fig.add_axes([0.25, 0.9, 0.65, 0.03])
+Y_slider = Slider(
+    ax=axY,
+    label="Y",
+    valmin=0,
+    valmax=1,
+    valinit=0.85,
+    orientation="horizontal"
+)
+
+valuepoint = [0.5, 0.5, 0.5]
 
 lx2 = np.linspace(0, 1, 30) # //! Change 30 to 10 if you have preformance issues
 ly2 = np.linspace(0, 1, 30)
@@ -119,14 +140,24 @@ lz3 = np.array(lz3).reshape(lx.shape)
 surf1 = ax.plot_surface(lx, ly, lz, alpha=0.8, cmap="viridis")
 surf2 = ax.plot_surface(lx, ly, lz2, alpha=0.8, cmap="plasma")
 surf3 = ax.plot_surface(lx, ly, lz3, alpha=0.8, cmap="inferno")
+point = ax.scatter([], [], [], color="red", s=1000, )
+point.set_color([random.random(), random.random(), random.random()])
 
-def update(val):
+def update_alpha(val):
     alpha = alpha_slider.val
     surf1.set_alpha(alpha)
     surf2.set_alpha(alpha)
     surf3.set_alpha(alpha)
     fig.canvas.draw_idle()
+    
+def update_point(val):
+    x = X_slider.val
+    y = Y_slider.val
+    z1, z2, z3 = mynet(x, y)
+    point._offsets3d = ([x, x, x], [y, y, y], [z1, z2, z3])
 
-alpha_slider.on_changed(update)
+alpha_slider.on_changed(update_alpha)
+X_slider.on_changed(update_point)
+Y_slider.on_changed(update_point)
 
 plt.show()
