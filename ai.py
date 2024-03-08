@@ -97,8 +97,8 @@ alpha_slider = Slider(
 )
 
 
-lx2 = np.linspace(0, 1, 10)
-ly2 = np.linspace(0, 1, 10)
+lx2 = np.linspace(0, 1, 30) # //! Change 30 to 10 if you have preformance issues
+ly2 = np.linspace(0, 1, 30)
 lx, ly = np.meshgrid(lx2, ly2)
 
 lz = []
