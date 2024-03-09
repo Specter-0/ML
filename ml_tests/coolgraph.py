@@ -1,11 +1,9 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.widgets import Button, Slider
-import math, sys, random
+import math, sys
+import random as rn
 import numpy as np
-
-def rnc():
-    return [random.random(), random.random(), random.random()]
 
 plt.style.use('fivethirtyeight')
 
@@ -142,7 +140,7 @@ surf1 = ax.plot_surface(lx, ly, lz, alpha=0.8, cmap="viridis")
 surf2 = ax.plot_surface(lx, ly, lz2, alpha=0.8, cmap="plasma")
 surf3 = ax.plot_surface(lx, ly, lz3, alpha=0.8, cmap="inferno")
 points = ax.scatter([], [], [], s=1000)
-points.set_color([rnc() for _ in range(3)])
+points.set_color([[rn.random(), rn.random(), rn.random()] for _ in range(3)])
 
 def update_alpha(val):
     alpha = alpha_slider.val
