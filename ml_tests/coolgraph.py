@@ -4,6 +4,9 @@ from matplotlib.widgets import Button, Slider
 import math, sys, random
 import numpy as np
 
+def rnc():
+    return [random.random(), random.random(), random.random()]
+
 plt.style.use('fivethirtyeight')
 
 class Nn:
@@ -84,8 +87,6 @@ ax.set_xticks([])
 ax.set_yticks([])
 ax.set_zticks([])
 
-ax.add_artist(ax.legend(["Setosa", "Versicolor", "Virgincia"]))
-
 axalp = fig.add_axes([0.1, 0.25, 0.0225, 0.63])
 alpha_slider = Slider(
     ax=axalp,
@@ -140,8 +141,8 @@ lz3 = np.array(lz3).reshape(lx.shape)
 surf1 = ax.plot_surface(lx, ly, lz, alpha=0.8, cmap="viridis")
 surf2 = ax.plot_surface(lx, ly, lz2, alpha=0.8, cmap="plasma")
 surf3 = ax.plot_surface(lx, ly, lz3, alpha=0.8, cmap="inferno")
-point = ax.scatter([], [], [], color="red", s=1000, )
-point.set_color([random.random(), random.random(), random.random()])
+points = ax.scatter([], [], [], s=1000)
+points.set_color([rnc() for _ in range(3)])
 
 def update_alpha(val):
     alpha = alpha_slider.val
@@ -154,7 +155,7 @@ def update_point(val):
     x = X_slider.val
     y = Y_slider.val
     z1, z2, z3 = mynet(x, y)
-    point._offsets3d = ([x, x, x], [y, y, y], [z1, z2, z3])
+    points._offsets3d = ([x, x, x], [y, y, y], [z1, z2, z3])
 
 alpha_slider.on_changed(update_alpha)
 X_slider.on_changed(update_point)
