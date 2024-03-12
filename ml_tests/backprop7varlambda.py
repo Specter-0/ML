@@ -95,8 +95,8 @@ class NeuralNetwork():
             
             pindex += 1
             
-    def train(self, *kwargs) -> Generator:
-        stuff = [(func, value, False) for func, value in kwargs]
+    def train(self, *args) -> Generator:
+        stuff = [(func, value, False) for func, value in args]
         
         iterations = 0
         while True:

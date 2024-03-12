@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
+from typing import Generator
 import math, sys
 import random as rn
 import numpy as np
+import pandas as pd
 
 plt.style.use('fivethirtyeight')
 
@@ -93,12 +95,50 @@ class Nn:
         
         return lx, ly, lz, lz2, lz3
 
-    def train(self):
-        for i in range(100):
-            yield self.traverse()
-            self.pw1 += 0.01
+    def snapshot(self, data) -> Generator:
+        snapshot = pd.DataFrame()
+        for index in range(len(data)):
+            snapshot.append(
+                {
+                    "species": data["species"][index],
+                }
+            )
+            
+    def train(self, data : pd.DataFrame, **kwargs) -> Generator:
+        training_points = [(key, func, False) for key, func in kwargs]
+        
+        while not all([should_break for _, _, should_break in training_points]):
+            snapshot = self.snapshot(data)
+            
+            print(snapshot)
+            
+            for key, func, should_break in training_points:
+                if not should_break:
+                    value, should_break = func(value, data)
+                    
+                    training_points[key] = (key, value, should_break)
+            
+            # !| yield self.traverse()
 
 mynet = Nn()
+
+training_data = pd.DataFrame(
+    {
+        "petal": [0.04, 1, 0.50],
+        "sepal": [0.42, 0.54, 0.37],
+        "species": ["setosa", "virginica", "versicolor"],
+        "probability": [None, None, None],
+        "cross_entropy": [None, None, None],
+    }
+)
+
+
+
+frames = list(mynet.train(training_data,
+    bsum = lambda x : x
+))
+
+# //* drawing
 
 fig = plt.figure(figsize=(10, 10))
 ax = fig.add_subplot(111, projection='3d')
@@ -128,7 +168,6 @@ def animate(state):
     
     return surf1, surf2, surf3
 
-frames = list(mynet.train())
 anim = FuncAnimation(
     fig, 
     animate, 
