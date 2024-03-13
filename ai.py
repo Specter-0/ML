@@ -96,12 +96,31 @@ class Nn:
         return lx, ly, lz, lz2, lz3
 
     def snapshot(self, data) -> Generator:
-        snapshot = {}
+        snapshot = {
+            "values": {
+                "pw1": self.pw1,
+                "pw2": self.pw2,
+                "pbsum": self.pbsum,
+                "sw1": self.sw1,
+                "sw2": self.sw2,
+                "sbsum": self.sbsum,
+                "pw3": self.pw3,
+                "pw4": self.pw4,
+                "pw5": self.pw5,
+                "sw3": self.sw3,
+                "sw4": self.sw4,
+                "sw5": self.sw5,
+                "bsum": self.bsum,
+                "bsum2": self.bsum2,
+                "bsum3": self.bsum3,
+            }
+        }
         for index, species in enumerate(data["species"].tolist()):
             row = data.iloc[index]
             snapshot[species] = {
                 "petal": row["petal"],
                 "sepal": row["sepal"],
+                "predicted": self(row["petal"], row["sepal"])
             }
 
         return snapshot
@@ -109,18 +128,82 @@ class Nn:
     def train(self, data : pd.DataFrame, **kwargs) -> Generator:
         training_points = [(key, func, False) for key, func in kwargs.items()]
         
+        iterations = 0
         while not all([should_break for _, _, should_break in training_points]):
             snapshot = self.snapshot(data)
-            
             print(snapshot)
             
             for key, func, should_break in training_points:
                 if not should_break:
-                    value, should_break = func(value, data)
+                    value, should_break = func(snapshot)
+                    
+                    loss = func(snapshot)
+                    
+                    value, should_break = self.gradient_descent(value, loss, 0.1, 0.000001)
+        
+                    match key:
+                        case "pw1":
+                            self.pw1 = value
+                        
+                        case "pw2":
+                            self.pw2 = value
+                        
+                        case "pw3":
+                            self.pw3 = value
+                            
+                        case "pw4":
+                            self.pw4 = value
+                        
+                        case "pw5":
+                            self.pw5 = value
+                            
+                        case "sw1":
+                            self.sw1 = value
+                        
+                        case "sw2":
+                            self.sw2 = value
+                        
+                        case "sw3":
+                            self.sw3 = value
+                            
+                        case "sw4":
+                            self.sw4 = value
+                        
+                        case "sw5":
+                            self.sw5 = value
+                        
+                        case "pbsum":
+                            self.pbsum = value
+                            
+                        case "sbsum":
+                            self.sbsum = value
+                            
+                        case "bsum":
+                            self.bsum = value
+                            
+                        case "bsum2":
+                            self.bsum = value
+                            
+                        case "bsum3":
+                            self.bsum = value
                     
                     training_points[key] = (key, value, should_break)
             
             # !| yield self.traverse()
+            
+            iterations += 1
+            if iterations >= 150000:
+                print("Training took too long")
+                break
+        
+        print(f"Training took {iterations} iterations")
+
+    def gradient_descent(self, value, loss, learning_rate, precision) -> None:
+        step_size = loss * learning_rate
+        
+        value += -step_size
+        
+        return value, abs(step_size) < precision
 
 mynet = Nn()
 
@@ -133,9 +216,8 @@ training_data = pd.DataFrame(
 )
 
 
-
 frames = list(mynet.train(training_data,
-    bsum = lambda x : x
+    bsum = lambda snapshot : snapshot["setosa"]["petal"]
 ))
 
 # //* drawing
