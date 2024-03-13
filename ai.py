@@ -96,16 +96,18 @@ class Nn:
         return lx, ly, lz, lz2, lz3
 
     def snapshot(self, data) -> Generator:
-        snapshot = pd.DataFrame()
-        for index in range(len(data)):
-            snapshot.append(
-                {
-                    "species": data["species"][index],
-                }
-            )
+        snapshot = {}
+        for index, species in enumerate(data["species"].tolist()):
+            row = data.iloc[index]
+            snapshot[species] = {
+                "petal": row["petal"],
+                "sepal": row["sepal"],
+            }
+
+        return snapshot
             
     def train(self, data : pd.DataFrame, **kwargs) -> Generator:
-        training_points = [(key, func, False) for key, func in kwargs]
+        training_points = [(key, func, False) for key, func in kwargs.items()]
         
         while not all([should_break for _, _, should_break in training_points]):
             snapshot = self.snapshot(data)
@@ -127,8 +129,6 @@ training_data = pd.DataFrame(
         "petal": [0.04, 1, 0.50],
         "sepal": [0.42, 0.54, 0.37],
         "species": ["setosa", "virginica", "versicolor"],
-        "probability": [None, None, None],
-        "cross_entropy": [None, None, None],
     }
 )
 
