@@ -216,7 +216,7 @@ training_data = pd.DataFrame(
 
 
 frames = list(mynet.train(training_data,
-    bsum = lambda snapshot : snapshot["setosa"]["petal"]
+    bsum = lambda snapshot : snapshot["setosa"]["predicted"][0] - 1 + snapshot["setosa"]["predicted"][0] + snapshot["setosa"]["predicted"][0]
 ))
 
 # //* drawing
