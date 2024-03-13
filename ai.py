@@ -126,20 +126,19 @@ class Nn:
         return snapshot
             
     def train(self, data : pd.DataFrame, **kwargs) -> Generator:
-        training_points = [(key, func, False) for key, func in kwargs.items()]
+        training_points = {key : (func, False) for key, func in kwargs.items()}
         
         iterations = 0
-        while not all([should_break for _, _, should_break in training_points]):
+        while not all(should_break[1] for should_break in training_points.values()):
             snapshot = self.snapshot(data)
-            print(snapshot)
             
-            for key, func, should_break in training_points:
+            for key, values in training_points.items():
+                func, should_break = values
+                
                 if not should_break:
-                    value, should_break = func(snapshot)
-                    
                     loss = func(snapshot)
                     
-                    value, should_break = self.gradient_descent(value, loss, 0.1, 0.000001)
+                    value, should_break = self.gradient_descent(snapshot["values"][key], loss, 0.1, 0.000001)
         
                     match key:
                         case "pw1":
@@ -189,7 +188,7 @@ class Nn:
                     
                     training_points[key] = (key, value, should_break)
             
-            # !| yield self.traverse()
+            yield self.traverse()
             
             iterations += 1
             if iterations >= 150000:
