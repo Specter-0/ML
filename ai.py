@@ -27,9 +27,9 @@ class Nn:
         self.sw4 = -5.2
         self.sw5 = 3.7
         
-        self.bsum = 1
+        self.bsum = 0
         self.bsum2 = 0
-        self.bsum3 = 1
+        self.bsum3 = 0
     
     def __call__(self, in1 : float, in2 : float) -> float:
         px = self.pw1 * in1
@@ -122,7 +122,7 @@ class Nn:
                 "sepal": row["sepal"],
                 "predicted": {data["species"].tolist()[index] : predicted_value for index, predicted_value in enumerate(self(row["petal"], row["sepal"]))}
             }
-
+            
         return snapshot
             
     def train(self, data : pd.DataFrame, **kwargs) -> Generator:
@@ -138,7 +138,7 @@ class Nn:
                 if not should_break:
                     loss = func(snapshot)
                     
-                    value, should_break = self.gradient_descent(snapshot["values"][key], loss, 0.1, 0.0000001)
+                    value, should_break = self.gradient_descent(snapshot["values"][key], loss, 0.1, 0.0000000001)
         
                     match key:
                         case "pw1":
@@ -181,17 +181,17 @@ class Nn:
                             self.bsum = value
                             
                         case "bsum2":
-                            self.bsum = value
+                            self.bsum2 = value
                             
                         case "bsum3":
-                            self.bsum = value
+                            self.bsum3 = value
                     
                     training_points[key] = (func, should_break)
             
             yield self.traverse()
             
             iterations += 1
-            if iterations >= 150000:
+            if iterations >= 50000:
                 print("Training took too long")
                 break
         
@@ -199,8 +199,6 @@ class Nn:
     
     def gradient_descent(self, value, loss, learning_rate, precision) -> None:
         step_size = loss * learning_rate
-        
-        print(f"step_size: {step_size}, value: {value}, loss: {loss}")
         
         value += -step_size
         
@@ -212,13 +210,15 @@ training_data = pd.DataFrame(
     {
         "petal": [0.04, 1, 0.50],
         "sepal": [0.42, 0.54, 0.37],
-        "species": ["setosa", "virginica", "versicolor"],
+        "species": ["setosa", "versicolor", "virginica"],
     }
 )
 
 
 frames = list(mynet.train(training_data,
-    bsum = lambda snapshot : snapshot["setosa"]["predicted"]["setosa"] - 1 + snapshot["virginica"]["predicted"]["setosa"] + snapshot["versicolor"]["predicted"]["setosa"]
+    bsum = lambda snapshot : snapshot["setosa"]["predicted"]["setosa"] - 1 + snapshot["versicolor"]["predicted"]["setosa"] + snapshot["virginica"]["predicted"]["setosa"],
+    bsum2 = lambda snapshot : snapshot["setosa"]["predicted"]["versicolor"] + snapshot["versicolor"]["predicted"]["versicolor"] - 1 + snapshot["virginica"]["predicted"]["versicolor"],
+    bsum3 = lambda snapshot : snapshot["setosa"]["predicted"]["virginica"] + snapshot["versicolor"]["predicted"]["virginica"] + snapshot["virginica"]["predicted"]["virginica"] - 1,
 ))
 
 # //* drawing
@@ -255,10 +255,12 @@ anim = FuncAnimation(
     fig, 
     animate, 
     frames=frames, 
-    interval=40, 
+    interval=10, 
     repeat=False, 
     cache_frame_data=False
 )
 
 print(mynet.bsum)
+print(mynet.bsum2)
+print(mynet.bsum3)
 plt.show()

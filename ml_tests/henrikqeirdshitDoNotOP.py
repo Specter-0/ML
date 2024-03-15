@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.animation as animation
-points = {0:0, 0.5:0.2, 1:0}
+points = {0:0, 0.5: 0.2, 1: 0}
 print("hei")
 class NN:
     def __init__(self, points : dict):
