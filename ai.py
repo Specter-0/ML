@@ -27,7 +27,7 @@ class Nn:
         self.sw4 = -5.2
         self.sw5 = 3.7
         
-        self.bsum = 0
+        self.bsum = 1
         self.bsum2 = 0
         self.bsum3 = 1
     
@@ -129,11 +129,11 @@ class Nn:
         training_points = {key : (func, False) for key, func in kwargs.items()}
         
         iterations = 0
-        while not all(should_break[1] for should_break in training_points.values()):
+        while not all([should_break[1] for should_break in list(training_points.values())]):
             snapshot = self.snapshot(data)
             
             for key, values in training_points.items():
-                func, should_break = values
+                func, should_break = values 
                 
                 if not should_break:
                     loss = func(snapshot)
@@ -186,7 +186,7 @@ class Nn:
                         case "bsum3":
                             self.bsum = value
                     
-                    training_points[key] = (key, value, should_break)
+                    training_points[key] = (func, should_break)
             
             yield self.traverse()
             
@@ -196,9 +196,11 @@ class Nn:
                 break
         
         print(f"Training took {iterations} iterations")
-
+    
     def gradient_descent(self, value, loss, learning_rate, precision) -> None:
         step_size = loss * learning_rate
+        
+        print(f"step_size: {step_size}, value: {value}, loss: {loss}")
         
         value += -step_size
         
@@ -258,4 +260,5 @@ anim = FuncAnimation(
     cache_frame_data=False
 )
 
+print(mynet.bsum)
 plt.show()
