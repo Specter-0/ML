@@ -120,7 +120,7 @@ class Nn:
             snapshot[species] = {
                 "petal": row["petal"],
                 "sepal": row["sepal"],
-                "predicted": self(row["petal"], row["sepal"])
+                "predicted": {data["species"].tolist()[index] : predicted_value for index, predicted_value in enumerate(self(row["petal"], row["sepal"]))}
             }
 
         return snapshot
@@ -138,7 +138,7 @@ class Nn:
                 if not should_break:
                     loss = func(snapshot)
                     
-                    value, should_break = self.gradient_descent(snapshot["values"][key], loss, 0.1, 0.000001)
+                    value, should_break = self.gradient_descent(snapshot["values"][key], loss, 0.1, 0.0000001)
         
                     match key:
                         case "pw1":
@@ -218,7 +218,7 @@ training_data = pd.DataFrame(
 
 
 frames = list(mynet.train(training_data,
-    bsum = lambda snapshot : snapshot["setosa"]["predicted"][0] - 1 + snapshot["setosa"]["predicted"][0] + snapshot["setosa"]["predicted"][0]
+    bsum = lambda snapshot : snapshot["setosa"]["predicted"]["setosa"] - 1 + snapshot["virginica"]["predicted"]["setosa"] + snapshot["versicolor"]["predicted"]["setosa"]
 ))
 
 # //* drawing
